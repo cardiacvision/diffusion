@@ -1,0 +1,13 @@
+numpy
+matplotlib
+pyvistaqt
+imageio-ffmpeg
+PyQt5
+more-itertools
+cmocean
+pyacvd@ git+https://github.com/pyvista/pyacvd
+pymeshfix
+pygem@ git+https://github.com/mathLab/PyGeM
+scipy
+tqdm
+ffmpeg-python

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1386</width>
+    <height>794</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SPH Viewer</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QWidget" name="widget" native="true">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="7">
+        <widget class="QSlider" name="framedelay">
+         <property name="maximum">
+          <number>300</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="8">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Point Size</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Speed</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="playpause">
+         <property name="text">
+          <string>Pause</string>
+         </property>
+         <property name="shortcut">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Frame</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="9">
+        <widget class="QSlider" name="pointsize">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>40</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QSlider" name="framenr">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_2" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QGroupBox" name="leftBox">
+         <property name="title">
+          <string>Left</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QComboBox" name="left_scalar"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="left_cmap"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="left_opacity"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="rightBox">
+         <property name="title">
+          <string>Right</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QComboBox" name="right_scalar"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="right_cmap"/>
+          </item>
+          <item>
+           <widget class="QComboBox" name="right_opacity"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1386</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuTest">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_Directory"/>
+    <addaction name="actionLoad_Second_Directory"/>
+    <addaction name="separator"/>
+    <addaction name="actionPrint_Camera_Position"/>
+    <addaction name="separator"/>
+    <addaction name="actionCreate_Movie"/>
+    <addaction name="actionToggle_PNG_Screenshots"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuClip">
+    <property name="title">
+     <string>Clip</string>
+    </property>
+    <addaction name="actionToggle_Clipping"/>
+    <addaction name="actionToggle_Plane"/>
+   </widget>
+   <widget class="QMenu" name="menuUtils">
+    <property name="title">
+     <string>Utils</string>
+    </property>
+    <addaction name="actionToggle_Scale_Bar"/>
+    <addaction name="actionToggle_Stimuli_Points"/>
+   </widget>
+   <widget class="QMenu" name="menuGlpyths">
+    <property name="title">
+     <string>Glpyths</string>
+    </property>
+    <addaction name="actionToggle_Glyphs"/>
+    <addaction name="separator"/>
+    <addaction name="actionGlyphMagnitude"/>
+    <addaction name="actionGlyphXZ"/>
+    <addaction name="actionGlyphXY"/>
+    <addaction name="actionGlyphYZ"/>
+   </widget>
+   <widget class="QMenu" name="menuOrbit">
+    <property name="title">
+     <string>Orbit</string>
+    </property>
+    <addaction name="actionOrbit"/>
+    <addaction name="actionOrbit_Video"/>
+   </widget>
+   <addaction name="menuTest"/>
+   <addaction name="menuUtils"/>
+   <addaction name="menuClip"/>
+   <addaction name="menuGlpyths"/>
+   <addaction name="menuOrbit"/>
+  </widget>
+  <action name="actionLoad_Directory">
+   <property name="text">
+    <string>Load Directory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionCreate_Movie">
+   <property name="text">
+    <string>Create Movie</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionToggle_PNG_Screenshots">
+   <property name="text">
+    <string>Toggle PNG Screenshots</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionPrint_Camera_Position">
+   <property name="text">
+    <string>Print Camera Position</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+  </action>
+  <action name="actionToggle_Glyphs">
+   <property name="text">
+    <string>Toggle Glyphs</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionLoad_Second_Directory">
+   <property name="text">
+    <string>Load Second Directory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionToggle_Scale_Bar">
+   <property name="text">
+    <string>Toggle Scale Bar</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionToggle_Stimuli_Points">
+   <property name="text">
+    <string>Toggle Stimuli Points</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionToggle_Plane">
+   <property name="text">
+    <string>Toggle Plane</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionToggle_Clipping">
+   <property name="text">
+    <string>Toggle Clipping</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionGlyphMagnitude">
+   <property name="text">
+    <string>Color = Magnitude</string>
+   </property>
+  </action>
+  <action name="actionGlyphXZ">
+   <property name="text">
+    <string>Color = XZ angle</string>
+   </property>
+  </action>
+  <action name="actionGlyphXY">
+   <property name="text">
+    <string>Color = XY angle</string>
+   </property>
+  </action>
+  <action name="actionGlyphYZ">
+   <property name="text">
+    <string>Color = YZ angle</string>
+   </property>
+  </action>
+  <action name="actionOrbit">
+   <property name="text">
+    <string>Orbit</string>
+   </property>
+  </action>
+  <action name="actionOrbit_Video">
+   <property name="text">
+    <string>Orbit Video</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

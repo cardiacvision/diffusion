@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: sphtools
+Version: 0.1
+Home-page: 
+Classifier: Private :: Do not Upload
+Requires-Python: >=3.7
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Requires-Dist: pyvistaqt
+Requires-Dist: imageio-ffmpeg
+Requires-Dist: PyQt5
+Requires-Dist: more-itertools
+Requires-Dist: cmocean
+Requires-Dist: pyacvd@ git+https://github.com/pyvista/pyacvd
+Requires-Dist: pymeshfix
+Requires-Dist: pygem@ git+https://github.com/mathLab/PyGeM
+Requires-Dist: scipy
+Requires-Dist: tqdm
+Requires-Dist: ffmpeg-python
