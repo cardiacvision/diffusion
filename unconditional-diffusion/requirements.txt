@@ -1,0 +1,11 @@
+accelerate>=0.16.0
+torchvision
+datasets
+diffusers==0.27.2
+matplotlib
+numpy
+Pillow
+tqdm
+torch==2.3.0
+torchvision==0.18.0
+pytorch-fid==0.3.0

@@ -1,0 +1,7 @@
+numpy
+scikit-image
+matplotlib
+tqdm
+torch==2.0.1
+torchvision==0.15.2a0
+grad-cam==1.5.0
