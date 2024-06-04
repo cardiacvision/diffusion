@@ -53,14 +53,15 @@ trainer.fit(model, train, val)
 # test using the best model!
 trainer.test(test_dataloaders=test)
 ```
-
+-->
 ### Citation   
 ```
-@article{YourName,
-  title={Your Title},
-  author={Your team},
-  journal={Location},
-  year={Year}
+@article{baranwal2023dreaming,
+      title={Dreaming of Electrical Waves: Generative Modeling of Cardiac Excitation Waves using Diffusion Models}, 
+      author={Tanish Baranwal and Jan Lebert and Jan Christoph},
+      year={2023},
+      eprint={2312.14830},
+      archivePrefix={arXiv},
+      primaryClass={physics.med-ph}
 }
 ```   
--->
