@@ -11,7 +11,8 @@ ARXIV
 </div>
  
 ## Description   
-This repository contains all the code files used to generate the results from the paper.
+This repository contains all the code files used to generate the results from the paper. 
+Each folder corresponds to the code for different portions of the paper, and has a corresponding requirements.txt file.
 <!--
 ## How to run   
 First, install dependencies   
