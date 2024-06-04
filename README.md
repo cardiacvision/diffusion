@@ -2,7 +2,7 @@
  
 # Dreaming of Electrical Waves: Generative Modeling of Cardiac Excitation Waves using Diffusion Models     
 
-[![Paper](http://img.shields.io/badge/paper-arxiv.1003.2234-B31B1B.svg)](PLACEHOLDER)
+[![Paper](http://img.shields.io/badge/paper-arxiv.2312.14830-B31B1B.svg)](https://arxiv.org/abs/2312.14830)
 <!--
 ARXIV   
 [![Paper](http://img.shields.io/badge/arxiv-math.co:1480.1111-B31B1B.svg)](https://www.nature.com/articles/nature14539)

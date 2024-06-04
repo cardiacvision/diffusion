@@ -351,6 +351,7 @@ class UNet(nn.Module):
         res_blocks,
         attn_res,
         dropout=0,
+        cross_attn_dim=1,
         channel_mults=(1, 2, 4, 8),
         conv_resample=True,
         use_checkpoint=False,
@@ -361,6 +362,7 @@ class UNet(nn.Module):
         use_scale_shift_norm=True,
         resblock_updown=True,
         use_new_attention_order=False,
+        max_periods=[10000]
     ):
 
         super().__init__()
@@ -382,10 +384,11 @@ class UNet(nn.Module):
         self.num_heads = num_heads
         self.num_head_channels = num_head_channels
         self.num_heads_upsample = num_heads_upsample
-
-        cond_embed_dim = inner_channel * 4
+        self.max_periods = max_periods
+        new_inner_channel = cross_attn_dim * inner_channel
+        cond_embed_dim = new_inner_channel * 4
         self.cond_embed = nn.Sequential(
-            nn.Linear(inner_channel, cond_embed_dim),
+            nn.Linear(new_inner_channel, cond_embed_dim),
             SiLU(),
             nn.Linear(cond_embed_dim, cond_embed_dim),
         )
@@ -530,10 +533,16 @@ class UNet(nn.Module):
         :return: an [N x C x ...] Tensor of outputs.
         """
         hs = []
-        gammas = gammas.view(-1, )
-        emb = self.cond_embed(gamma_embedding(gammas, self.inner_channel))
+        N = x.shape[0]
+        gammas = gammas.view(N, -1)
+        emb_input = [gamma_embedding(gammas[:, i], self.inner_channel, 
+                                     max_period=self.max_periods[i]) for i in range(gammas.shape[1])]
+        emb_input = torch.cat(emb_input, dim=1)
+
+        emb = self.cond_embed(emb_input)
 
         h = x.type(torch.float32)
+
         for module in self.input_blocks:
             h = module(h, emb)
             hs.append(h)

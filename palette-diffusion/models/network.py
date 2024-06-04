@@ -6,8 +6,6 @@ from functools import partial
 import numpy as np
 from tqdm import tqdm
 from core.base_network import BaseNetwork
-SHAPE = [10, 64, 64]
-# SHAPE = [5, 64, 64]
 
 class Network(BaseNetwork):
     def __init__(self, unet, beta_schedule, module_name='sr3', **kwargs):
@@ -18,6 +16,7 @@ class Network(BaseNetwork):
             from .guided_diffusion_modules.unet import UNet
         
         self.denoise_fn = UNet(**unet)
+        self.shape = [unet["in_channels"], unet["image_size"], unet["image_size"]]
         self.beta_schedule = beta_schedule
 
     def set_loss(self, loss_fn):
@@ -94,7 +93,7 @@ class Network(BaseNetwork):
 
         assert self.num_timesteps > sample_num, 'num_timesteps must greater than sample_num'
         sample_inter = (self.num_timesteps//sample_num)
-        y_t = default(y_t, lambda: torch.randn(y_cond.size()[0:1] + torch.Size(SHAPE), 
+        y_t = default(y_t, lambda: torch.randn(y_cond.size()[0:1] + torch.Size(self.shape), 
                         dtype=torch.FloatTensor().dtype, layout=y_cond.layout, 
                         device=y_cond.device))
         
@@ -198,10 +197,11 @@ class DDIMNetwork(BaseNetwork):
             from .sr3_modules.unet import UNet
         elif module_name == 'guided_diffusion':
             from .guided_diffusion_modules.unet import UNet
-        
+        self.shape = [unet.in_channel, unet.image_size, unet.image_size]
         self.denoise_fn = unet
         self.beta_schedule = beta_schedule
-
+        
+        
     def set_loss(self, loss_fn):
         self.loss_fn = loss_fn
 
@@ -213,13 +213,12 @@ class DDIMNetwork(BaseNetwork):
         alphas = 1. - betas
 
         timesteps, = betas.shape
-        n_steps_ddim = 30
+        n_steps_ddim = 50
 
         self.num_timesteps = int(timesteps)
         self.time_steps = ((np.linspace(0, np.sqrt(self.num_timesteps * .8), n_steps_ddim)) ** 2).astype(int) + 1
         
         gammas = to_torch(np.cumprod(alphas, axis=0))
-
         ddim_alpha = gammas[self.time_steps].clone().to(torch.float32)
         ddim_alpha_sqrt = torch.sqrt(to_torch(ddim_alpha))
 
@@ -243,11 +242,12 @@ class DDIMNetwork(BaseNetwork):
                y_t: Optional[torch.Tensor] = None,
                sample_num=8,
                y_0=None, 
-               mask=None
+               mask=None,
+               cross=False
                ):
         device = cond.device
         bs, *_ = cond.shape
-        x = default(y_t, lambda: torch.randn(cond.size()[0:1] + torch.Size(SHAPE), 
+        x = default(y_t, lambda: torch.randn(cond.size()[0:1] + torch.Size([self.denoise_fn.out_channel, self.denoise_fn.image_size, self.denoise_fn.image_size]), 
                         dtype=torch.FloatTensor().dtype, layout=cond.layout, 
                         device=cond.device))
         time_steps = np.flip(self.time_steps)
@@ -256,7 +256,7 @@ class DDIMNetwork(BaseNetwork):
         for i, step in tqdm(enumerate(time_steps), desc='sampling loop time step', total=len(time_steps)):
             index = len(time_steps) - i - 1
             ts = x.new_full((bs,), step, dtype=torch.long)
-            x, pred_x0, e_t = self.p_sample(x, cond, ts, step, index=index)
+            x, pred_x0, e_t = self.p_sample(x, cond, ts, step, index=index, cross=cross)
             if mask is not None:
                 x = y_0*(1.-mask) + mask*x
             ret_arr = torch.cat([ret_arr, x], dim=0)
@@ -264,9 +264,14 @@ class DDIMNetwork(BaseNetwork):
         return x, ret_arr
 
     @torch.no_grad()
-    def p_sample(self, x: torch.Tensor, c: torch.Tensor, t: torch.Tensor, step: int, index: int):
+    def p_sample(self, x: torch.Tensor, c: torch.Tensor, t: torch.Tensor, step: int, index: int, cross: bool):
         noise_level = extract(self.gammas, t, x_shape=(1, 1)).to(x.device)
-        e_t = self.denoise_fn(torch.cat([c, x], dim=1), noise_level)
+        if cross:
+            emb = noise_level.view(x.shape[0], 1)
+            emb = torch.cat([emb, c], dim=1)
+            e_t = self.denoise_fn(x, emb)
+        else:
+            e_t = self.denoise_fn(torch.cat([c, x], dim=1), noise_level)
         x_prev, pred_x0 = self.get_x_prev_and_pred_x0(e_t, index, x)
 
         return x_prev, pred_x0, e_t
@@ -294,7 +299,7 @@ class DDIMNetwork(BaseNetwork):
     def set_loss(self, loss_fn):
         self.loss_fn = loss_fn
         
-    def forward(self, y_0, y_cond=None, mask=None, noise=None):
+    def forward(self, y_0, y_cond=None, mask=None, noise=None, cross=False):
         # sampling from p(gammas)
         b, *_ = y_0.shape
         t = torch.randint(1, self.num_timesteps, (b,), device=y_0.device).long()
@@ -311,6 +316,11 @@ class DDIMNetwork(BaseNetwork):
             noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy*mask+(1.-mask)*y_0], dim=1), sample_gammas)
             loss = self.loss_fn(mask*noise, mask*noise_hat)
         else:
-            noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy], dim=1), sample_gammas)
+            if cross:
+                emb = sample_gammas.view(y_noisy.shape[0], 1)
+                emb = torch.cat([emb, y_cond], dim=1)
+                noise_hat = self.denoise_fn(y_noisy, emb)
+            else:
+                noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy], dim=1), sample_gammas)
             loss = self.loss_fn(noise, noise_hat)
         return loss

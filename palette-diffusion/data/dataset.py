@@ -1,11 +1,16 @@
 import torch.utils.data as data
 from torchvision import transforms
+from torchvision.transforms import v2
 from PIL import Image
 import os
 import torch
 import numpy as np
 from skimage.transform import resize
 from .util.mask import (bbox2mask, brush_stroke_mask, get_irregular_mask, random_bbox, random_cropping_bbox)
+import glob
+from pathlib import Path
+from tqdm import tqdm
+from scipy import ndimage
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -554,6 +559,7 @@ class NextTimeStep2DNPY(data.Dataset):
 
         self.image_size = (image_size, image_size)
         self.num_prev = num_prev
+
         self.images = np.load(data_path)
         self.images = self.images.reshape(-1, self.images.shape[1], self.images.shape[2], 1)
         if until is not None:
@@ -591,7 +597,7 @@ class NextTimeStep2DNPY(data.Dataset):
     
 
 class NextTimeStep2DEXP(data.Dataset):
-    def __init__(self, data_path, image_size=128, until=None, skip=None, num_prev=5):
+    def __init__(self, data_path, image_size=128, until=None, skip=None, num_prev=5, num_after=5):
         # self.x = np.load(data_x)[:, :, :, ::7]
         
         self.tfs_x = transforms.Compose([
@@ -603,26 +609,60 @@ class NextTimeStep2DEXP(data.Dataset):
         self.tfs_y = transforms.Compose([
             # transforms.Resize((image_size[0], image_size[1])),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[.5]*num_prev, std=[.5]*num_prev)
+            transforms.Normalize(mean=[.5]*num_after, std=[.5]*num_after)
         ])
 
         self.image_size = (image_size, image_size)
         self.num_prev = num_prev
-        self.images = np.load(data_path)
-        self.images = self.images.transpose(0, 2, 3, 1)
+        self.num_after = num_after
+        path = Path(data_path)
+        self.images = []
+        self.total_samples = 0
+        # import ipdb; ipdb.set_trace()
+        files = list(path.glob("*.npy"))
         if until is not None:
-            self.images = self.images[:until]
+            files = files[:until]
         if skip is not None:
-            self.images = self.images[skip:]
+            files = files[skip:]
 
+        for i in tqdm(files):
+            d = resize(np.load(str(i))[:, :, :, 0].transpose(1, 2, 0), self.image_size).transpose(2, 0, 1)
+            self.images.append(d)
+            new = d[-min(len(d), 50):]
 
+            self.images.append(ndimage.rotate(new[::3], 90, axes=(2, 1)))
+            self.images.append(ndimage.rotate(new[1::3], 180, axes=(2, 1)))
+            self.images.append(ndimage.rotate(new[2::3], 270, axes=(2, 1)))
+            self.images.append(np.zeros((50, image_size, image_size)))
+
+        
+        for d in self.images:
+            self.total_samples += d.shape[0] - self.num_prev - self.num_after + 1
+
+    def item_map(self, index):
+        curr = 0
+        for idx in range(len(self.images)):
+            if index < (len(self.images[idx]) - self.num_prev - self.num_after + 1 + curr):
+                return index - curr, idx
+            else:
+                curr += len(self.images[idx]) - self.num_prev - self.num_after + 1
+        
+            
 
     def __getitem__(self, index):
         ret = {}
         # y = resize((self.y[index]/1.212)*255, self.image_size)
-        x = resize(np.array(self.images[index]), self.image_size)
+        start_index, img_index = self.item_map(index)
+        imgs = self.images[img_index]
+        x = []
+        for i in range(self.num_prev):
+            x.append(np.array(imgs[i+start_index]).reshape(*self.image_size, 1))
+        x = np.concatenate(x, axis=-1).astype(np.float32)
 
-        y = resize(np.array(self.images[index+1]), self.image_size)
+        y = []
+        for i in range(self.num_after):
+            y.append(np.array(imgs[i+self.num_prev+start_index]).reshape(*self.image_size, 1))
+        y = np.concatenate(y, axis=-1).astype(np.float32)
 
         img = self.tfs_y(y)
         cond_image = self.tfs_x(x)
@@ -633,7 +673,41 @@ class NextTimeStep2DEXP(data.Dataset):
         return ret
 
     def __len__(self):
-        return len(self.images) - 1
+        return self.total_samples
+    
+
+class Autoregressive2DEXP(data.Dataset):
+    def __init__(self, data_path, image_size=128, num_prev=5, num_after=5):
+        # self.x = np.load(data_x)[:, :, :, ::7]
+        
+        self.tfs_x = transforms.Compose([
+            # transforms.Resize((image_size[0], image_size[1])),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[.5]*num_prev, std=[.5]*num_prev)
+        ])
+
+        self.tfs_y = transforms.Compose([
+            # transforms.Resize((image_size[0], image_size[1])),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[.5]*num_after, std=[.5]*num_after)
+        ])
+
+        self.image_size = (image_size, image_size)
+
+        self.images = np.load(data_path)
+
+    def __getitem__(self, index):
+        ret = {}
+        img = self.tfs_y(resize(self.images[index], self.image_size))
+        cond_image = self.tfs_x(resize(self.images[index], self.image_size))
+
+        ret['gt_image'] = img
+        ret['cond_image'] = cond_image
+        ret['path'] = f"{index}"
+        return ret
+
+    def __len__(self):
+        return len(self.images)
 
 class CondGeneration(data.Dataset):
     def __init__(self, data_files, image_size=128):
@@ -673,6 +747,106 @@ class CondGeneration(data.Dataset):
         ret['gt_image'] = img
         ret['cond_image'] = cond_image
         ret['path'] = f"{self.labels[index][0]}_{self.labels[index][1]}_{index}"
+        return ret
+
+    def __len__(self):
+        return len(self.images)
+        # return 100
+    
+class CondGenerationNew(data.Dataset):
+    def __init__(self, data_files, data_prefix, param_1, param_2, image_size=128):
+        # self.x = np.load(data_x)[:, :, :, ::7]
+        self.tfs_y = transforms.Compose([
+            # transforms.Resize((image_size[0], image_size[1])),
+            v2.ToTensor(),
+            v2.RandomHorizontalFlip(p=0.5),
+            v2.RandomVerticalFlip(p=0.5),
+            v2.Normalize(mean=[.5]*10, std=[.5]*10)
+        ])
+        self.label_matrix = np.dstack(np.meshgrid(param_1, param_2))
+
+        self.image_size = image_size
+        self.labels = []
+        self.images = []
+        for file_suffix in tqdm(data_files):
+            file = data_prefix + file_suffix
+            y, x = list(map(lambda x: int(x) - 1, file_suffix.split("-")[:2]))
+            dat = np.load(file)
+            dat = dat[:, ::3].transpose([0, 2, 3, 1, 4]).reshape(len(dat), 128, 128, -1)
+            dat[..., 1::2] = dat[..., 1::2] / 3.4
+            
+            dat = resize(dat, (len(dat), self.image_size, self.image_size))
+            lab = np.repeat(self.label_matrix[x, y][None, :], len(dat), axis=0)
+            self.images.append(dat[:-5])
+            self.labels.append(lab[:-5])
+
+        self.images = np.concatenate(self.images)
+        self.labels = np.concatenate(self.labels)
+
+    def __getitem__(self, index):
+        ret = {}
+        img = self.tfs_y(self.images[index])
+        rotate = torch.randint(0, 4, ()).type(torch.FloatTensor)
+        img = transforms.functional.rotate(img, (rotate*90).item())
+        
+        cond = self.labels[index:index+1].repeat(self.image_size**2, axis=0).reshape(self.image_size, self.image_size, 2).transpose([2, 0, 1])
+        cond_image = torch.FloatTensor(cond)
+
+        ret['gt_image'] = img.to(torch.float)
+        ret['cond_image'] = cond_image
+        ret['path'] = f"{self.labels[index][0]}_{self.labels[index][1]}_{index}"
+        return ret
+
+    def __len__(self):
+        return len(self.images)
+        # return 100
+
+
+class CondGenerationCrossAttn(data.Dataset):
+    def __init__(self, data_files, data_prefix, param_1, param_2, image_size=128):
+        # self.x = np.load(data_x)[:, :, :, ::7]
+        self.tfs_y = transforms.Compose([
+            # transforms.Resize((image_size[0], image_size[1])),
+            v2.ToTensor(),
+            v2.RandomHorizontalFlip(p=0.5),
+            v2.RandomVerticalFlip(p=0.5),
+            v2.Normalize(mean=[.5]*10, std=[.5]*10)
+        ])
+        self.label_matrix = -np.log(np.dstack(np.meshgrid(param_1, param_2)))
+        # self.label_matrix = np.dstack(np.meshgrid(param_1, param_2))
+
+        self.image_size = image_size
+        self.labels = []
+        self.images = []
+        for file_suffix in tqdm(data_files):
+            file = data_prefix + file_suffix
+            y, x = list(map(lambda x: int(x) - 1, file_suffix.split("-")[:2]))
+            dat = np.load(file)
+            dat = dat[:, ::3].transpose([0, 2, 3, 1, 4]).reshape(len(dat), 128, 128, -1)
+            dat[..., 1::2] = dat[..., 1::2] / 3.4
+            
+            dat = resize(dat, (len(dat), self.image_size, self.image_size))
+            lab = np.repeat(self.label_matrix[x, y][None, :], len(dat), axis=0)
+            self.images.append(dat)
+            self.labels.append(lab)
+
+        self.images = np.concatenate(self.images)
+        self.labels = np.concatenate(self.labels)
+
+    def __getitem__(self, index):
+        ret = {}
+        img = self.tfs_y(self.images[index])
+        rotate = torch.randint(0, 4, ()).type(torch.FloatTensor)
+        img = transforms.functional.rotate(img, (rotate*90).item())
+        
+        cond = self.labels[index]
+        cond_image = torch.FloatTensor(cond)
+
+        ret['gt_image'] = img.to(torch.float)
+        ret['cond_image'] = cond_image
+        ret['path'] = f"{self.labels[index][0]}_{self.labels[index][1]}_{index}"
+        ret['cross'] = True
+        
         return ret
 
     def __len__(self):
@@ -756,3 +930,66 @@ class InpaintDatasetCustom(data.Dataset):
             raise NotImplementedError(
                 f'Mask mode {self.mask_mode} has not been implemented.')
         return torch.from_numpy(mask).permute(2,0,1)
+    
+
+class CellCultureDataset(data.Dataset):
+    def __init__(self, image_size=128, history_len=32, skip=8, take=108, after=0, noise=0.4):
+        self.u_imgs = []
+        self.v_imgs = []
+        self.positions = []
+        self.history_len = history_len
+
+        files = glob.glob("/mnt/data1/shared/data/cellculture-data/simulation/seed_*")
+        print(len(files) // 3)
+        files = sorted(files, key=lambda y: y[56:61])[after*3:take*3 + after*3]
+        for file in files:
+            if "_u.n" in file:
+                self.u_imgs.append(np.load(file))
+            elif "_v.n" in file:
+                self.v_imgs.append(np.load(file))
+            elif "_positions.n" in file:
+                self.positions.append(np.load(file))
+
+        self.k_i_map = {}
+        self.index = 0
+        for k in range(len(self.positions)):
+            for i in range(0, len(self.positions[k])-history_len, skip):
+                self.k_i_map[self.index] = (k, i)
+                self.index += 1
+
+        self.tfs_disp = transforms.Compose([
+                # transforms.Resize((image_size[0], image_size[1])),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5] * history_len * 2, std=[0.5] * history_len * 2),
+                transforms.Lambda(lambda tensor: (tensor + torch.randn_like(tensor) * noise))
+        ])
+        self.tfs_uv = transforms.Compose([
+                # transforms.Resize((image_size[0], image_size[1])),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5] * 2, std=[0.5] * 2)
+        ])
+        self.image_size = image_size
+
+    def __getitem__(self, index):
+        k, i = self.k_i_map[index]
+
+        disp_dat = np.zeros((128, 128, self.history_len*2))
+        for j in range (0, self.history_len):
+            disp_dat[:, :, j*2:(j+1)*2] = (self.positions[k][i+j] - self.positions[k][i])
+        uv_dat = np.dstack([self.u_imgs[k][i], self.v_imgs[k][i] / 2.3])
+
+        ret = {}
+        disp = resize(disp_dat, (self.image_size, self.image_size))
+        uv = resize(uv_dat, (self.image_size, self.image_size))
+        
+        disp = self.tfs_disp(disp)
+        uv = self.tfs_uv(uv)
+
+        ret['gt_image'] = uv.type(torch.FloatTensor)
+        ret['cond_image'] = disp.type(torch.FloatTensor)
+        ret['path'] = f"{index}"
+
+        return ret
+
+    def __len__(self):
+        return self.index

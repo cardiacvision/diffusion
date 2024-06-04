@@ -27,12 +27,11 @@ def main_worker(gpu, ngpus_per_node, opt):
 
     ''' set logger '''
     phase_logger = InfoLogger(opt)
-    # phase_writer = VisualWriter(opt, phase_logger)  
-    # phase_logger.info('Create the log file in directory {}.\n'.format(opt['path']['experiments_root']))
+    phase_writer = VisualWriter(opt, phase_logger)  
+    phase_logger.info('Create the log file in directory {}.\n'.format(opt['path']['experiments_root']))
 
     '''set networks and dataset'''
-    # phase_loader, val_loader = define_dataloader(phase_logger, opt) # val_loader is None if phase is test.
-    # networks = [define_network(None, opt, item_opt) for item_opt in opt['model']['which_networks']]
+    phase_loader, val_loader = define_dataloader(phase_logger, opt) # val_loader is None if phase is test.
     networks = [define_network(phase_logger, opt, item_opt) for item_opt in opt['model']['which_networks']]
 
     ''' set metrics, loss, optimizer and  schedulers '''
@@ -42,26 +41,32 @@ def main_worker(gpu, ngpus_per_node, opt):
     model = create_model(
         opt = opt,
         networks = networks,
-        phase_loader = None,
-        val_loader = None,
+        phase_loader = phase_loader,
+        val_loader = val_loader,
         losses = losses,
         metrics = metrics,
         logger = phase_logger,
-        writer = None
+        writer = phase_writer
     )
 
-    # phase_logger.info('Begin model {}.'.format(opt['phase']))
+    phase_logger.info('Begin model {}.'.format(opt['phase']))
 
     model.netG.eval()
     model.netG = DDIMNetwork(model.netG.denoise_fn, model.netG.beta_schedule)
     model.netG.set_new_noise_schedule(phase="train")
 
-    def count_parameters(model):
-        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    model.test_metrics.reset()
+    # import ipdb; ipdb.set_trace()
+    for i in val_loader:
+        print(i)
+        break
+    model.set_input(i)
+    model.output, model.visuals = model.netG.restoration(model.cond_image, sample_num=model.sample_num, cross=True)
     
-    print(count_parameters(model.netG))
-
-
+    phase_writer.close()
+        
+        
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=str, default='config/colorization_mirflickr25k.json', help='JSON file for configuration')

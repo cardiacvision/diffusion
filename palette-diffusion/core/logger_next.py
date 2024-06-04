@@ -110,13 +110,12 @@ class VisualWriter():
         ''' get names and corresponding images from results[OrderedDict] '''
         try:
             names = results['name']
-            outputs, save_outs = Util.postprocess(results['result'], return_both=True)
+            outputs = Util.postprocess(results['result'])
             # for i in range(len(names)): 
             #     Image.fromarray(outputs[i]).save(os.path.join(result_path, names[i]))
             gt = []
             mask = []
             out = []
-            out_save = []
             name_indicies = []
             cond = []
             for i in range(len(names)):
@@ -125,56 +124,68 @@ class VisualWriter():
                     name_indicies.append(names[i][3:])
                 elif "Out" in names[i]:
                     out.append((outputs[i]).astype(np.int16))
-                    out_save.append((save_outs[i]).astype(np.float32))
                 elif "Mask" in names[i]:
                     mask.append(outputs[i].astype(np.int16))
                 elif "Cond" in names[i]:
                     cond.append((outputs[i]).astype(np.int16))
             for i in range(len(gt)):
-                num_channels = max(out[i].shape[-1] // 2, 1)
-                fig, axu = plt.subplots(num_channels, 3)
-                for j in range(num_channels):
+                # fig, (axu, axv) = plt.subplots(2, 4)
+                # vmin = 0
+                # vmax = 255
+                # axu[0].imshow(gt[i][:, :, 0], vmin=vmin, vmax=vmax, interpolation="none")
+                # axu[0].set_title("Ground Truth U")
+                # axu[1].imshow(mask[i][:, :, 0], vmin=vmin, vmax=vmax, interpolation="none")
+                # axu[1].set_title("Mask U")
+                # axu[2].imshow(out[i][:, :, 0], vmin=vmin, vmax=vmax, interpolation="none")
+                # axu[2].set_title("Output U")
+                # axu[3].imshow(np.abs(out[i] - gt[i])[:, :, 0], vmin=vmin, vmax=vmax, interpolation="none")
+                # axu[3].set_title("Difference U")
+
+                # axv[0].imshow(gt[i][:, :, 1], vmin=vmin, vmax=vmax, interpolation="none")
+                # axv[0].set_title("Ground Truth V")
+                # axv[1].imshow(mask[i][:, :, 1], vmin=vmin, vmax=vmax, interpolation="none")
+                # axv[1].set_title("Mask V")
+                # axv[2].imshow(out[i][:, :, 1], vmin=vmin, vmax=vmax, interpolation="none")
+                # axv[2].set_title("Output V")
+                # axv[3].imshow(np.abs(out[i] - gt[i])[:, :, 1], vmin=vmin, vmax=vmax, interpolation="none")
+                # axv[3].set_title("Difference V")
+
+                fig, axu = plt.subplots(5, 4)
+                for j in range(5):
                     vmin = 0
                     vmax = 255
-                    axu[j][0].imshow(gt[i][:, :, j*2], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
-                    axu[0][0].set_title("Ground Truth U")
-                    axu[j][0].set_axis_off()
-                    axu[j][1].imshow(out[i][:, :, j*2], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
-                    axu[0][1].set_title("Output U")
+                    axu[j][1].imshow(gt[i][:, :, j], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
+                    axu[j][1].set_title("Ground Truth U")
                     axu[j][1].set_axis_off()
-                    axu[j][2].imshow(np.abs(out[i] - gt[i])[:, :, j*2], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
-                    axu[0][2].set_title("Difference U")
+                    axu[j][0].imshow(cond[i][:, :, j], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
+                    axu[j][0].set_title("Prev U")
+                    axu[j][0].set_axis_off()
+                    axu[j][2].imshow(out[i][:, :, j], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
+                    axu[j][2].set_title("Output U")
                     axu[j][2].set_axis_off()
-                fig.suptitle(name_indicies[i])
-                fig.set_size_inches(5, num_channels * 2)
-                fig.tight_layout()
+                    axu[j][3].imshow(np.abs(out[i] - gt[i])[:, :, j], vmin=vmin, vmax=vmax, interpolation="none", cmap=mpl.colormaps["magma"])
+                    axu[j][3].set_title("Difference U")
+                    axu[j][3].set_axis_off()
+
                 fig.savefig(os.path.join(result_path, f"All_{name_indicies[i]}.png"))
                 plt.close(fig)
             try:
                 arr = np.load(os.path.join(result_path, "results.npy"))
-                new_arr = np.array(out_save[:len(gt)])
+                new_arr = np.array(out[:len(gt)])
                 arr = np.concatenate([arr, new_arr])
 
                 old_gt = np.load(os.path.join(result_path, "gts.npy"))
-                new_gt = np.array(gt)/255
+                new_gt = np.array(gt)
                 full_gt = np.concatenate([old_gt, new_gt])
-
-                par = np.load(os.path.join(result_path, "params.npy"))
-                params = np.array(list(map(lambda z: z.split("_")[:2], name_indicies))).astype(np.float32)
-                par = np.concatenate([par, params[:len(gt)]])
 
                 np.save(os.path.join(result_path, "gts.npy"), full_gt)
                 np.save(os.path.join(result_path, "results.npy"), arr)
-                np.save(os.path.join(result_path, "params.npy"), par)
             except:
-                arr = np.array(out_save[:len(gt)])
+                arr = np.array(out[:len(gt)])
                 np.save(os.path.join(result_path, "results.npy"), arr)
 
-                new_gt = np.array(gt)/255
+                new_gt = np.array(gt)
                 np.save(os.path.join(result_path, "gts.npy"), new_gt)
-
-                params = np.array(list(map(lambda z: z.split("_")[:2], name_indicies))).astype(np.float32)
-                np.save(os.path.join(result_path, "params.npy"), params)
                     
         except:
             raise NotImplementedError('You must specify the context of name and result in save_current_results functions of model.')

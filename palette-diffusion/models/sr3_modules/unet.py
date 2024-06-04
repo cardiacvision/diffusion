@@ -30,7 +30,8 @@ class UNet(nn.Module):
         else:
             noise_level_channel = None
             self.noise_level_mlp = None
-
+        self.in_channels = in_channel
+        self.image_size = image_size
         num_mults = len(channel_mults)
         pre_channel = inner_channel
         feat_channels = [pre_channel]
