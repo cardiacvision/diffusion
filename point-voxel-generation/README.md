@@ -16,9 +16,20 @@ tqdm==4.32.1
 open3d==0.9.0
 trimesh=3.7.12
 scipy==1.5.1
+torch-scatter==2.0.4
+torch-sparse==0.6.1
+torch-cluster==1.5.4
+torch-spline-conv==1.2.0
+descartes==1.1.0
+fire==0.3.1
+jupyter==1.0.0
+opencv_python==4.3.0
+Shapely==1.7.0
+Pillow==6.2.1
+torch_geometric==1.6.0
 ```
 
-or, install the pip requirements in `requirements.txt`.
+or, install the pip and conda requirements in `requirements.txt`.
 
 Install PyTorchEMD by
 ```
@@ -29,7 +40,7 @@ cp build/**/emd_cuda.cpython-36m-x86_64-linux-gnu.so .
 
 ## Data
 
-We uploaded the dataset to (Zenodo)[zenodo.org]
+We uploaded the dataset to [Zenodo](https://zenodo.org)
 
 ## Training:
 

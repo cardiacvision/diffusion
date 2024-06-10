@@ -1,18 +1,13 @@
-# Palette: Image-to-Image Diffusion Models
-
-[Paper](https://arxiv.org/pdf/2111.05826.pdf ) |  [Project](https://iterative-refinement.github.io/palette/ )
-
-## Brief
+# Tasks 1, 3, 4, 5: Palette Image-to-Image Diffusion Models
 
 This is a modified implementation of **Palette: Image-to-Image Diffusion Models** in **Pytorch**, and it is mainly inherited from the [implementation by Janspiry](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models).
 
-## Usage
-### Environment
+## Requirements
 ```python
 pip install -r requirements.txt
 ```
 
-### Data Prepare
+## Data
 
 We uploaded the data for the different tasks to [Zenodo](https://zenodo.org)
 - [Task 1: Generation of parameter-specific two-dimensional spiral waves](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256)
@@ -35,16 +30,9 @@ After you prepared own data, you need to modify the corresponding configure file
 
 More choices about **dataloader** and **validation split** also can be found in `datasets`  part of configure file.
 
-### Training/Resume Training
+## Training
 
-1. Set your network label in `load_everything` function of `model.py`, default is **Network**. Follow the tutorial settings, the optimizers and models will be loaded from 100.state and 100_Network.pth respectively.
-
-```python
-netG_label = self.netG.__class__.__name__
-self.load_network(network=self.netG, network_label=netG_label, strict=False)
-```
-
-2. Run the script:
+Run the script:
 
 | Tasks  | Base Folder                | Command to Run Training                                    | Comments |
 |--------|----------------------------|------------------------------------------------------------|----------|
@@ -55,9 +43,9 @@ self.load_network(network=self.netG, network_label=netG_label, strict=False)
 
 More choices about **backbone**, **loss** and **metric** can be found in `which_networks`  part of configure file.
 
-### Test
+## Testing
 
-1. Modify the configure file to point to your data following the steps in **Data Prepare** part.
+1. Modify the configure file to point to your data following the steps in **Data** part.
 2. Set your model path:
 
 	Set `resume_state` of configure file to the directory of previous checkpoint. Take the following as an example, this directory contains training states and saved model:
@@ -78,7 +66,7 @@ More choices about **backbone**, **loss** and **metric** can be found in `which_
 | Task 5 | `palette-diffusion/`       | `python run.py -c config/inpainting_2d_time.json -p test` |          |
 
 
-## Acknowledge
+## Acknowledgements
 Our work is based on the following theoretical works:
 - [Denoising Diffusion Probabilistic Models](https://arxiv.org/pdf/2006.11239.pdf)
 - [Palette: Image-to-Image Diffusion Models](https://arxiv.org/pdf/2111.05826.pdf)

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from tqdm import tqdm
+import argparse
 import PIL.Image as im
 
 def main(model_path, out_path, out_path_raw):
@@ -41,3 +42,12 @@ def main(model_path, out_path, out_path_raw):
     np.save(f"{out_path}/u_data.npy", u_data)
     np.save(f"{out_path}/v_data.npy", v_data)
     np.save(f"{out_path}/images.npy", images)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Unconditional Diffusion Inference")
+    parser.add_argument("--model_path", type=str, help="Path to the pre-trained model")
+    parser.add_argument("--out_path", type=str, help="Output directory for generated images")
+    parser.add_argument("--out_path_raw", type=str, help="Output directory for raw generated images")
+    args = parser.parse_args()
+
+    main(args.model_path, args.out_path, args.out_path_raw)

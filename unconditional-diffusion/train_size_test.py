@@ -32,25 +32,26 @@ main_path = "/mnt/data_jenner/tanish/data/uv_exp_data/"
 files = list(glob(f"{main_path}/*"))
 for size in training_sizes:
     print(f"Training size: {size}")
-    files_sample = sample(files, size)
-    dir = f"/mnt/data_jenner/tanish/data/uv_exp_range_data/samples{size}"
+    # files_sample = sample(files, size)
+    # dir = f"/mnt/data_jenner/tanish/data/uv_exp_range_data/samples{size}"
     outdir = f"ddpm-128-param-samples{size}"
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    for file in tqdm(files_sample):
-        shutil.copy2(file, dir)
-    with open("run.sh", "w") as file:
-        file.write(script_format.format(dir, outdir, total_iterations // size, save_model // size, checkpointing_steps // size))
-    os.system("bash run.sh")
-    gen_dir = f"./range_test_exp/samples{size}"
-    gen_dir_raw = f"./range_test_exp/samples_raw_{size}"
+    # if not os.path.exists(dir):
+    #     os.makedirs(dir)
+    # for file in tqdm(files_sample):
+    #     shutil.copy2(file, dir)
+    # with open("run.sh", "w") as file:
+    #     file.write(script_format.format(dir, outdir, total_iterations // size, save_model // size, checkpointing_steps // size))
+    # os.system("bash run.sh")
+    gen_dir = f"./range_test_param/samples{size}"
+    gen_dir_raw = f"./range_test_param/samples_raw_{size}"
     # gen_dir = f"./range_test_param/samples{size}"
     if not os.path.exists(gen_dir):
         os.makedirs(gen_dir)
     if not os.path.exists(gen_dir_raw):
         os.makedirs(gen_dir_raw)
     main(outdir, gen_dir, gen_dir_raw)
-    cmp_dir = "/mnt/data_jenner/tanish/data/uv_exp_range_data/samples50000"
-    # cmp_dir = "/mnt/data_jenner/tanish/data/uv_param_range_data/samples50000"
+    # cmp_dir = "/mnt/data_jenner/tanish/data/uv_exp_range_data/samples50000"
+    cmp_dir = "/mnt/data_jenner/tanish/data/uv_param_range_data/samples50000"
     
-    os.system(f"python -m pytorch_fid {cmp_dir} {gen_dir_raw} --device cuda:0 > fid_scores/samples{size}.txt")
+    # os.system(f"python -m pytorch_fid {cmp_dir} {gen_dir} --device cuda:0 > fid_scores/samples{size}.txt")
+    os.system(f"python -m pytorch_fid {cmp_dir} {gen_dir_raw} --device cuda:0 > fid_scores_param/samples{size}.txt")
