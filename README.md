@@ -16,7 +16,7 @@ Each folder corresponds to the code for different portions of the paper, and has
 
 
 | Tasks  | Base Folder                | Command to Run Training                                    |
-|--------|----------------------------|------------------------------------------------------------|----------|
+|--------|----------------------------|------------------------------------------------------------|
 | Task 1 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/conditional.json -p train`        |
 | Task 2 | [`point-voxel-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/point-voxel-generation)   | `python train_generation.py`                               |
 | Task 3 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/next_timestep.json -p train`      |
