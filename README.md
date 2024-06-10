@@ -15,14 +15,14 @@ This repository contains all the code files used to generate the results from th
 Each folder corresponds to the code for different portions of the paper, and has a corresponding requirements.txt file. Each folder also has an associated README.md file containing installation information and information on how to run the models.
 
 
-| Tasks  | Base Folder                | Command to Run Training                                    | Comments |
+| Tasks  | Base Folder                | Command to Run Training                                    |
 |--------|----------------------------|------------------------------------------------------------|----------|
-| Task 1 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/conditional.json -p train`        |          |
-| Task 2 | [`point-voxel-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/point-voxel-generation)   | `python train_generation.py`                               |          |
-| Task 3 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/next_timestep.json -p train`      |          |
-| Task 4 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/spiral_3d.json -p train`          |          |
-| Task 5 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/inpainting_2d_time.json -p train` |          |
-| Task 6 | [`unconditional-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/unconditional-diffusion) | `bash script.sh`                                           |          |
+| Task 1 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/conditional.json -p train`        |
+| Task 2 | [`point-voxel-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/point-voxel-generation)   | `python train_generation.py`                               |
+| Task 3 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/next_timestep.json -p train`      |
+| Task 4 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/spiral_3d.json -p train`          |
+| Task 5 | [`palette-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/palette-diffusion)       | `python run.py -c config/inpainting_2d_time.json -p train` |
+| Task 6 | [`unconditional-diffusion/`](https://github.com/cardiacvision/diffusion/tree/main/unconditional-diffusion) | `bash script.sh`                                           |
 
 ## Citation   
 ```
