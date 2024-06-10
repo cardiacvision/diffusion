@@ -29,7 +29,11 @@ Pillow==6.2.1
 torch_geometric==1.6.0
 ```
 
-or, install the pip and conda requirements in `requirements.txt`.
+or, install using conda:
+
+```python
+conda env create -f environment.yml
+```
 
 Install PyTorchEMD by
 ```
