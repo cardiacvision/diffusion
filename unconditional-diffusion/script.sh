@@ -1,0 +1,12 @@
+accelerate launch train_unconditional.py \
+  --train_data_dir /mnt/data1/tanish/data/uv_exp_last_data \
+  --resolution=128 \
+  --output_dir="ddpm-ema-uv-spiral-128-last-150" \
+  --train_batch_size=16 \
+  --num_epochs=100 \
+  --gradient_accumulation_steps=1 \
+  --learning_rate=1e-4 \
+  --lr_warmup_steps=500 \
+  --mixed_precision=bf16 \
+  --checkpoints_total_limit=10 \
+  --save_model_epochs=5
