@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 We uploaded the data for the different tasks to [Zenodo](https://zenodo.org)
 - [Task 1: Generation of parameter-specific two-dimensional spiral waves](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256)
-- [Task 3: Prediction of the evolution of spiral wave dynamics over time](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256)
+- [Task 3: Prediction of the evolution of spiral wave dynamics over time](https://zenodo.org/records/12706818)
 - [Task 4: Reconstruction of three-dimensional scroll waves from two-dimensional surface observations](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256)
 - [Task 5: Inpainting of two-dimensional spiral wave dynamics, see section](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256)
 
